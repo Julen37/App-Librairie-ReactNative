@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 
 // définition du schema de données pour les users
 const userSchema = new mongoose.Schema({
@@ -21,6 +22,14 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: '',
     },
+});
+
+// hash du password avant sauvegarde en bdd
+userSchema.pre('save', async function() {
+    if(!this.isModified("password")) return ; // Vérifier si le mdp a été modifié
+
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
 });
 
 // creation du modele de données "User"

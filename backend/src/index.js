@@ -8,6 +8,9 @@ import { connectDB } from "./lib/db.js";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// definition du middleware pour parser les requetes https en json
+app.use(express.json());
+
 app.use("/api/auth", authRoutes);
 
 // definition du port d'ecoute du serveur
