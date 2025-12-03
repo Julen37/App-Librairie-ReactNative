@@ -32,6 +32,11 @@ userSchema.pre('save', async function() {
     this.password = await bcrypt.hash(this.password, salt);
 });
 
+// comparaison du mot de passe pour se log
+userSchema.methods.comparePassword = async function(userPassword) {
+    return await bcrypt.compare(userPassword, this.password);
+}
+
 // creation du modele de données "User"
 const User = mongoose.model("User", userSchema);
 

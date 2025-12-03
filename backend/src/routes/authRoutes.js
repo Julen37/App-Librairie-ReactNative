@@ -76,7 +76,49 @@ router.post("/register", async (req, res) => {
 // methode POST 
 // URL : /login
 router.post("/login", async (req, res) => {
-    res.send("login");
+    try {
+        // exo 1
+        // on a besoin de l'email et du password
+        // on veut tous les champs sont remplis
+        // on verifie que l'email existe dans la bdd et donc si l'email existe alors le user aussi
+        // et si le password est bon avec le user associé alors on peut se connecter
+        // renvoyer le token et les user info comme dans register
+
+        const { email, password } = req.body;
+
+        if ( !email || !password) {
+            return res.status(400).json({ message: "Veuillez remplir tous les champs"});
+        };
+
+        const user = await User.findOne({email});
+
+        if (!user) {
+            return res.status(400).json({ message: "Utilisateur inexistant"});
+        };
+
+        const isPasswordCorrect = await user.comparePassword(password);
+
+        if (!isPasswordCorrect) {
+            return res.status(400).json({ message: "Mot de passe invalide"});
+        };
+
+        const token = generateToken(user._id);
+
+        res.status(201).json({
+            token,
+            user : {
+                id: user._id,
+                email: user.email,
+                username: user.username,
+                password: user.password,
+                profileImage: user.profileImage,
+            },
+        });
+        
+    } catch (error) {
+        console.log("Erreur dans la route login", error);
+        res.status(500).json({ message: "Erreur serveur"});
+    }
 });
 //#endregion
 
