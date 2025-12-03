@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: '',
     },
-});
+}, {timestamps: true}); // date de création de l'user
 
 // hash du password avant sauvegarde en bdd
 userSchema.pre('save', async function() {
