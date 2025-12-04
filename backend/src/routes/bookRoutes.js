@@ -71,4 +71,37 @@ router.get("/", protectRoute, async (req, res) => {
 })
 //#endregion
 
+//#region DELETE
+router.delete(":id", protectRoute, async (req, res) => {
+    try {
+        // recuperation du livre a supprimer
+        const book = await Book.findById(req.params.id) //params sert a prendre le parametre dans l'url de la route, ici on prend l'id donc :id aka la white card 
+
+        if (!book) {
+            res.status(404).json({ message: "Le livre n'a pas été trouvé"});
+        };
+
+        if (book.user.toString() !== req.user._id.toString()) {
+            return res.status(401).json({ message: "Vous  n'etes pas autorisé à faire cette action"});
+        };
+
+        if (book.image && book.image.includes("cloudinary")) {
+            try {
+                const publicId = book.image.split("/").pop().split(".")[0];
+                await cloudinary.uploader.destroy(publicId);
+            } catch (deleteError) {
+                console.log("Erreur de suppression d'image depuis cloudinary", deleteError);
+            };
+        };
+
+        await book.deleteOne();
+
+        res.json({ message: "Le livre a été supprimé avec succès"});
+    } catch (error) {
+        console.log("Erreur de suppression du livre", error);
+        res.status(500).json({ message: "Erreur serveur interne"});
+    }
+})
+//#endregion
+
 export default router;
