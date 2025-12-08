@@ -71,6 +71,20 @@ router.get("/", protectRoute, async (req, res) => {
 })
 //#endregion
 
+//#region reco de livres sur profil GET
+// route pour recup les livres d'un user specifique
+router.get("/user", protectRoute, async (req, res) => {
+    try {
+        // recherche de livres du user connecté et tri des livres par date de creation decroissante
+        const books = await Book.find({user: req.user._id}).sort({createdAt: -1});
+        res.json(books);
+    } catch (error) {
+        console.erreur("Erreur lors de la récupération des livres de l'utilisateur", error.message);
+        res.status(500).json({message: "Erreur serveur"})
+    }
+})
+//#endregion
+
 //#region DELETE
 router.delete(":id", protectRoute, async (req, res) => {
     try {
