@@ -6,9 +6,7 @@ import COLORS from "../constants/colors";
 export default function SafeScreen({children}) {
     const insets = useSafeAreaInsets();
   return (
-    <View style={[styles.container, {paddingTop: insets.top}]}>
-      {children}
-    </View>
+    <View style={[styles.container, {paddingTop: insets.top}]}>{children}</View>
   )
 }
 
