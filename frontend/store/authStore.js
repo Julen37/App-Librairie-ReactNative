@@ -46,5 +46,19 @@ export const useAuthStore = create((set) => ({
                 error: error.message
             };
         };
+    },
+
+    checkAuth: async () => {
+        try {
+            const token = await AsyncStorage.getItem("token");
+
+            const userJson = await AsyncStorage.getItem("user");
+
+            const user = userJson ? JSON.parse(userJson) : null;
+
+            set({ token, user });
+        } catch (error) {
+            console.log("Authentification check echoué", error);
+        }
     }
 }));
