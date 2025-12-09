@@ -75,7 +75,7 @@ export default function Signup() {
                                 />
                         </View>
                     </View>
-
+{/* mdp */}
                     <View style={styles.inputGroup}>
                         <Text style={styles.label}>Mot de passe</Text>
                         <View style={styles.inputContainer}>
@@ -107,7 +107,7 @@ export default function Signup() {
                         </View>
                     </View>
 
-
+{/* bouton */}
                     <TouchableOpacity
                         style={styles.button}
                         onPress={handleSignup} 
@@ -118,7 +118,7 @@ export default function Signup() {
                             <Text style={styles.buttonText}>Inscrivez-vous</Text>
                         )}
                     </TouchableOpacity>
-                    {/* footer */}
+{/* footer */}
                     <View style={styles.footer}>
                         <Text style={styles.footerText}>Vous avez dèjà un compte ?</Text>
                         <TouchableOpacity
@@ -127,7 +127,6 @@ export default function Signup() {
                             <Text style={styles.link}>Connexion</Text>
                         </TouchableOpacity>
                     </View>
-
                 </View>
             </View>
         </View>
