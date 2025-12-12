@@ -60,5 +60,44 @@ export const useAuthStore = create((set) => ({
         } catch (error) {
             console.log("Authentification check echoué", error);
         }
-    }
+    },
+
+    logout: async () => {
+        await AsyncStorage.removeItem("token");
+        await AsyncStorage.removeItem("user");
+        set({token: null, user: null});
+    },
+
+    login: async (email, password) => {
+        set({ isLoading: true });
+
+        try {
+            const response = await fetch("https://app-librairie-reactnative-backend.onrender.com/api/auth/login", {
+                method: "POST", 
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    email, 
+                    password,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || "Quelque chose s'est mal passé");
+            };
+
+            await AsyncStorage.setItem("user", JSON.stringify(data.user));
+            await AsyncStorage.setItem("token", data.token);
+
+            set({token: data.token, user: data.user, isLoading: false});
+
+            return {success: true};
+        } catch (error) {
+            set({isLoading: false});
+            return {success: false, error: error.message};
+        };
+    },
 }));
