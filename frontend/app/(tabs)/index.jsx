@@ -1,4 +1,4 @@
-import { View, Text, FlatList } from 'react-native'
+import { View, Text, FlatList, ActivityIndicator } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import {useAuthStore} from "../../store/authStore";
 import styles from "../../assets/styles/home.styles"
@@ -7,6 +7,12 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import COLORS from '../../constants/colors';
 import { formatPublishDate } from '../../lib/utils';
+import Loader from '../../components/Loader';
+
+// Fonction utilitaire pour créer une pause (attente) asynchrone
+// ms : durée de la pause en millisecondes
+// Retourne une promesse qui se résout après le délai spécifié
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export default function Home() {
 
@@ -68,7 +74,8 @@ export default function Home() {
 
   const handleLoadMore = async () => {
     if (hasMore && !loading && !refreshing) {
-      await fetchBooks(page + 1);
+      await sleep (500); // pause de 1 seconde (pour 1000ms) pour eviter les appels trop rapides
+      await fetchBooks(page + 1); // charge la page suivante
     }
   };
 
@@ -120,6 +127,13 @@ export default function Home() {
     return stars;
   };
 
+  // si les données sont en cours de chargement, on affiche un indicateur de chargement
+  if (loading) {
+    return (
+      <Loader size='large'/>
+    )
+  }
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -136,6 +150,15 @@ export default function Home() {
             <Text style={styles.headerTitle}>Bienvenue dans BookShare</Text>
             <Text style={styles.headerSubtitle}>Découvrez les derniers livres partagés par la communauté</Text>
           </View>
+        }
+        ListFooterComponent={
+          hasMore && books.length > 0 ? (
+            <ActivityIndicator
+              style={styles.footerLoader}
+              size="small"
+              color={COLORS.primary}
+            />
+          ) : null
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
