@@ -1,5 +1,6 @@
 import { View, Text, KeyboardAvoidingView, 
-        ScrollView, Platform, TextInput } from 'react-native'
+        ScrollView, Platform, TextInput, 
+        TouchableOpacity} from 'react-native'
 import React, { useState } from 'react'
 import { useRouter } from 'expo-router';
 import styles from '../../assets/styles/create.styles';
@@ -10,7 +11,7 @@ export default function Create() {
 
   const [title, setTitle] = useState("");
   const [caption, setCaption] = useState("");
-  const [rating, setRating] = useState(3);
+  const [rating, setRating] = useState(0);
   const [image, setImage] = useState(null);
   const [imageBase64, setImageBase64] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -22,6 +23,30 @@ export default function Create() {
   }
   const handleSubmit = async () => {
 
+  }
+
+  /*Cette fonction crée un composant de sélection de notation avec 5 étoiles.
+  L'utilisateur peut sélectionner une note en cliquant sur une étoile.*/
+  const renderRatingPicker = () => {
+    const stars= [];
+    
+    for (let i = 1; i <= 5; i++) {
+      // ajout d'une etoile au tableau
+      stars.push(
+        <TouchableOpacity
+          key={i}
+          onPress={() => setRating(i)}
+          style={styles.starButton}
+        >
+          <Ionicons
+            name={i <= rating ? "star" : "star-outline"}
+            size={32}
+            color={i <= rating ? "#fab400" : COLORS.textSecondary}
+          />
+        </TouchableOpacity>
+      );
+    }
+    return <View style={styles.ratingContainer}>{stars}</View>
   }
 
   return (
@@ -61,6 +86,13 @@ export default function Create() {
               />
             </View>
           </View>
+
+          {/* notation */}
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Votre note</Text>
+            {renderRatingPicker()}
+          </View>
+
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
