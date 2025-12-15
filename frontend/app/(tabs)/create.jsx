@@ -160,6 +160,18 @@ export default function Create() {
             </TouchableOpacity>
           </View>
 
+          {/* caption */}
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Description</Text>
+            <TextInput
+              style={styles.textArea}
+              placeholder='Ecrivez votre avis sur ce livre'
+              placeholderTextColor={COLORS.placeholderText}
+              value={caption}
+              onChangeText={setCaption}
+              multiline
+            />
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
