@@ -26,7 +26,7 @@ export default function Home() {
         setLoading(true);
       };
 
-      const response = await fetch(`${API_URL}/books?page=${pageNum}&limit=5`, {
+      const response = await fetch(`${API_URL}/books?page=${pageNum}&limit=2`, {
         headers: {
           Authorization: `Bearer ${token}`
         },
@@ -66,7 +66,11 @@ export default function Home() {
     fetchBooks();
   }, []);
 
-  const handleLoadMore = async () => {};
+  const handleLoadMore = async () => {
+    if (hasMore && !loading && !refreshing) {
+      await fetchBooks(page + 1);
+    }
+  };
 
   const renderItem = ({ item }) => (
     <View style={styles.bookCard}>
@@ -102,7 +106,7 @@ export default function Home() {
   const renderRatingStars = (rating) => {
     const stars = [];
 
-    for (let i = 1; i < 5; i++){
+    for (let i = 1; i < 6; i++){
       stars.push(
         <Ionicons
           key={i}
@@ -124,6 +128,9 @@ export default function Home() {
         keyExtractor={(item) => item._id}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
+
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.1}
         ListHeaderComponent={
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Bienvenue dans BookShare</Text>
