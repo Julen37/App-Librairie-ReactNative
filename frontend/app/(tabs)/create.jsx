@@ -1,7 +1,10 @@
-import { View, Text, KeyboardAvoidingView, ScrollView, Platform } from 'react-native'
+import { View, Text, KeyboardAvoidingView, 
+        ScrollView, Platform, TextInput } from 'react-native'
 import React, { useState } from 'react'
 import { useRouter } from 'expo-router';
 import styles from '../../assets/styles/create.styles';
+import { Ionicons } from "@expo/vector-icons";
+import COLORS from '../../constants/colors';
 
 export default function Create() {
 
@@ -35,6 +38,28 @@ export default function Create() {
           <View>
             <Text style={styles.title}>Ajouter une recommandation</Text>
             <Text style={styles.subtitle}>Partager vos favoris avec la communauté</Text>
+          </View>
+        </View>
+
+        <View style={styles.form}>
+          {/* titre du livre */}
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Titre du livre</Text>
+            <View style={styles.inputContainer}>
+              <Ionicons
+              name="book-outline"
+              size={20}
+              color={COLORS.textSecondary}
+              style={styles.inputIcon}
+              />
+              <TextInput
+              style={styles.input}
+              placeholder='Entrer le titre du livre'
+              placeholderTextColor={COLORS.placeholderText}
+              value={title}
+              onChangeText={setTitle}
+              />
+            </View>
           </View>
         </View>
       </ScrollView>
