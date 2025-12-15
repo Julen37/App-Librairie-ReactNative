@@ -1,11 +1,16 @@
 import { View, Text, KeyboardAvoidingView, 
         ScrollView, Platform, TextInput, 
-        TouchableOpacity} from 'react-native'
+        TouchableOpacity,
+        Image,
+        Alert} from 'react-native'
 import React, { useState } from 'react'
 import { useRouter } from 'expo-router';
 import styles from '../../assets/styles/create.styles';
 import { Ionicons } from "@expo/vector-icons";
 import COLORS from '../../constants/colors';
+
+import * as ImagePicker from "expo-image-picker";
+import * as FileSystem from "expo-file-system/legacy";
 
 export default function Create() {
 
@@ -19,8 +24,48 @@ export default function Create() {
   const router = useRouter();
 
   const pickImage = async () => {
-    
-  }
+    try {
+      // demander l'autorisation
+      if (Platform.OS !== "web") {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== "granted") {
+          Alert.alert("Permission refusée", "Nous avons besoin d'accéder à votre galerie pour changer l'image");
+          return;
+        }
+      }
+
+      // lancer la galerie
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: "images",
+        allowsEditing: true,
+        aspect: [4, 3], //définit le rapport d'aspect de l'image (4:3)
+        quality: 0.5, //définit la qualité de l'image (entre 0 et 5)
+        base64: true, // renvoie l'image sous forme de chaine de caractere en base64
+      });
+      if (!result.canceled) {
+        console.log("Résultat ici: ", result);
+        setImage(result.assets[0].uri); //met a jour l'etat de l'image avec l'uri de l'image
+
+        // Si l'image sélectionnée contient déjà une version encodée en base64,
+        // on la récupère directement depuis result.assets[0].base64 et on la stocke dans l'état.
+        if (result.assets[0].base64) {
+          setImageBase64(result.assets[0].base64);
+        } else {
+          // Sinon, on lit le fichier image à partir de son URI
+          // et on le convertit manuellement en base64 grâce à FileSystem,
+          // puis on pourra utiliser cette chaîne base64 comme fallback.
+          const base64 = await FileSystem.readAsStringAsync(result.assets[0].uri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          setImageBase64(base64);
+        }
+      }
+    } catch (error) {
+      console.error("Error picking image:", error);
+      Alert.alert("Erreur", "Il y a eu un problème pour sélectionner votre image");
+    }
+  };
+
   const handleSubmit = async () => {
 
   }
@@ -91,6 +136,28 @@ export default function Create() {
           <View style={styles.formGroup}>
             <Text style={styles.label}>Votre note</Text>
             {renderRatingPicker()}
+          </View>
+
+          {/* image */}
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Image du livre</Text>
+            <TouchableOpacity
+              style={styles.imagePicker}
+              onPress={pickImage}
+            >
+              {image ? (
+                <Image source={{uri: image}} style={styles.previewImage}/>
+              ): (
+                <View style={styles.placeholderContainer}>
+                  <Ionicons
+                  name="image-outline"
+                  size={40}
+                  color={COLORS.textSecondary}
+                  />
+                  <Text style={styles.placeholderText}>Toucher pour selectionner une image</Text>
+                </View>
+              )}
+            </TouchableOpacity>
           </View>
 
         </View>
