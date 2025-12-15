@@ -40,6 +40,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: COLORS.textSecondary,
         textAlign: "center",
+        marginBottom: 20,
     },
     form: {
         marginBottom: 16,

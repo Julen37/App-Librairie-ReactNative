@@ -2,7 +2,8 @@ import { View, Text, KeyboardAvoidingView,
         ScrollView, Platform, TextInput, 
         TouchableOpacity,
         Image,
-        Alert} from 'react-native'
+        Alert,
+        ActivityIndicator} from 'react-native'
 import React, { useState } from 'react'
 import { useRouter } from 'expo-router';
 import styles from '../../assets/styles/create.styles';
@@ -11,6 +12,10 @@ import COLORS from '../../constants/colors';
 
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system/legacy";
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuthStore } from '../../store/authStore';
+import { API_URL } from '../../constants/api';
 
 export default function Create() {
 
@@ -22,6 +27,7 @@ export default function Create() {
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
+  const {token} = useAuthStore();
 
   const pickImage = async () => {
     try {
@@ -67,7 +73,69 @@ export default function Create() {
   };
 
   const handleSubmit = async () => {
+    if (!title || !rating || !caption || !imageBase64) {
+      Alert.alert("Erreur", "Veuillez remplir tout les champs");
+      return;
+    }
+    try {
+      setLoading(true);
 
+      // Découpe l'URL de l'image en un tableau de parties en utilisant le point (.) comme séparateur
+      const uriParts = image.split(".");
+
+      // Extrait l'extension de fichier à partir de la dernière partie de l'URL
+      const fileType = uriParts[uriParts.length - 1];
+
+      // Détermine le type MIME de l'image en fonction de l'extension de fichier
+      // Si l'extension de fichier n'est pas vide, utilise-la pour construire le type MIME
+      // Sinon, utilise la valeur par défaut "image/jpeg"
+      const imageType = fileType ? `image/${fileType.toLowerCase()}`: "image/jpeg";
+
+      // Construit une URL de données pour l'image en utilisant le 
+      // type MIME déterminé et les données d'image encodées en base64
+      const imageDataUrl = `data:${imageType};base64,${imageBase64}`;
+
+      // envoi une requete http post a l'api pour creer u nouveau livre
+      const response = await fetch(`${API_URL}/books`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title,
+          caption,
+          rating: rating.toString(),
+          image: imageDataUrl,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Quelque chose s'est mal passé");
+      }
+
+      Alert.alert("Success", "Votre recommandation de livre a été posté");
+
+      // reinitialise les champs quand validé
+      setTitle("");
+      setCaption("");
+      setRating(0);
+      setImage(null);
+      setImageBase64(null);
+
+      router.push("/");
+
+      // recupere le token de connexion stocké dans le asyncStorage 
+      // const token = await AsyncStorage.getItem("token");
+
+    } catch (error) {
+      console.error("Erreur dans la création du post:", error);
+      Alert.alert("Error", error.message || "Quelque chose s'est mal passé");
+    } finally {
+      setLoading(false);
+    }
   }
 
   /*Cette fonction crée un composant de sélection de notation avec 5 étoiles.
@@ -109,68 +177,90 @@ export default function Create() {
             <Text style={styles.title}>Ajouter une recommandation</Text>
             <Text style={styles.subtitle}>Partager vos favoris avec la communauté</Text>
           </View>
-        </View>
 
-        <View style={styles.form}>
-          {/* titre du livre */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Titre du livre</Text>
-            <View style={styles.inputContainer}>
-              <Ionicons
-              name="book-outline"
-              size={20}
-              color={COLORS.textSecondary}
-              style={styles.inputIcon}
-              />
+          <View style={styles.form}>
+            {/* titre du livre */}
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Titre du livre</Text>
+              <View style={styles.inputContainer}>
+                <Ionicons
+                name="book-outline"
+                size={20}
+                color={COLORS.textSecondary}
+                style={styles.inputIcon}
+                />
+                <TextInput
+                style={styles.input}
+                placeholder='Entrer le titre du livre'
+                placeholderTextColor={COLORS.placeholderText}
+                value={title}
+                onChangeText={setTitle}
+                />
+              </View>
+            </View>
+
+            {/* notation */}
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Votre note</Text>
+              {renderRatingPicker()}
+            </View>
+
+            {/* image */}
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Image du livre</Text>
+              <TouchableOpacity
+                style={styles.imagePicker}
+                onPress={pickImage}
+              >
+                {image ? (
+                  <Image source={{uri: image}} style={styles.previewImage}/>
+                ): (
+                  <View style={styles.placeholderContainer}>
+                    <Ionicons
+                    name="image-outline"
+                    size={40}
+                    color={COLORS.textSecondary}
+                    />
+                    <Text style={styles.placeholderText}>Toucher pour selectionner une image</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+
+            {/* caption */}
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Description</Text>
               <TextInput
-              style={styles.input}
-              placeholder='Entrer le titre du livre'
-              placeholderTextColor={COLORS.placeholderText}
-              value={title}
-              onChangeText={setTitle}
+                style={styles.textArea}
+                placeholder='Ecrivez votre avis sur ce livre'
+                placeholderTextColor={COLORS.placeholderText}
+                value={caption}
+                onChangeText={setCaption}
+                multiline
               />
             </View>
-          </View>
 
-          {/* notation */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Votre note</Text>
-            {renderRatingPicker()}
-          </View>
-
-          {/* image */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Image du livre</Text>
+            {/* submit */}
             <TouchableOpacity
-              style={styles.imagePicker}
-              onPress={pickImage}
+              style={styles.button}
+              onPress={handleSubmit}
+              disabled={loading}
             >
-              {image ? (
-                <Image source={{uri: image}} style={styles.previewImage}/>
-              ): (
-                <View style={styles.placeholderContainer}>
+              {loading ? (
+                <ActivityIndicator />
+              ) : (
+                <>
                   <Ionicons
-                  name="image-outline"
-                  size={40}
-                  color={COLORS.textSecondary}
+                    name='cloud-upload-outline'
+                    size={20}
+                    color={COLORS.white}
+                    style={styles.buttonIcon}
                   />
-                  <Text style={styles.placeholderText}>Toucher pour selectionner une image</Text>
-                </View>
+                  <Text style={styles.buttonText}>Partager</Text>
+                </>
               )}
             </TouchableOpacity>
-          </View>
 
-          {/* caption */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Description</Text>
-            <TextInput
-              style={styles.textArea}
-              placeholder='Ecrivez votre avis sur ce livre'
-              placeholderTextColor={COLORS.placeholderText}
-              value={caption}
-              onChangeText={setCaption}
-              multiline
-            />
           </View>
         </View>
       </ScrollView>
