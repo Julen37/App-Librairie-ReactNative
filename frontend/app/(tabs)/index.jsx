@@ -1,4 +1,4 @@
-import { View, Text, FlatList, ActivityIndicator } from 'react-native'
+import { View, Text, FlatList, ActivityIndicator, RefreshControl } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import {useAuthStore} from "../../store/authStore";
 import styles from "../../assets/styles/home.styles"
@@ -142,6 +142,14 @@ export default function Home() {
         keyExtractor={(item) => item._id}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => fetchBooks(1, true)} //refresh la liste en reloadant la 1ere page
+            colors={[COLORS.primary]}
+            tintColor={COLORS.primary}
+          />
+        }
 
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.1}
